@@ -1,0 +1,9 @@
+                             o
+                                __   __   __   __
+                             | /  \_/    /    /  \_
+                             |/\__/ \___/\___/\__/
+                            /|
+                            \|
+
+julocco is a simple literate-programming-style documentation generator for
+julia.
