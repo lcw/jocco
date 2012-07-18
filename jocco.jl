@@ -7,6 +7,25 @@
 # This page is the result of running jocco against its own source file:
 #
 #     julia jocco.jl jocco.jl
+#
+# Using [pandoc](http://johnmacfarlane.net/pandoc/) allows us to have math
+# inline $x=y$ or in display mode
+# $$
+#   \begin{aligned}
+#     \nabla \times \vec{\mathbf{B}} -\, \frac1c\,
+#     \frac{\partial\vec{\mathbf{E}}}{\partial t} &=
+#     \frac{4\pi}{c}\vec{\mathbf{j}} \\
+#     \nabla \cdot \vec{\mathbf{E}} &= 4 \pi \rho \\
+#     \nabla \times \vec{\mathbf{E}}\, +\, \frac1c\,
+#     \frac{\partial\vec{\mathbf{B}}}{\partial t} &= \vec{\mathbf{0}} \\
+#     \nabla \cdot \vec{\mathbf{B}} &= 0
+#   \end{aligned}
+# $$
+# if you wish.  This uses the [MathJax](http://www.mathjax.org/) Content
+# Distribution Network script to turn $\LaTeX$ source into rendered output
+# and thus an internet connection is required.
+# [MathJax](http://www.mathjax.org/) may be installed locally if offline access
+# is desited.
 
 const code_sep = "# CUT HERE\n"
 const code_sep_html = "<span class=\"c\"># CUT HERE</span>\n"
@@ -20,6 +39,9 @@ const header = "<!DOCTYPE html>
   <title>%title%</title>
   <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">
   <link rel=\"stylesheet\" media=\"all\" href=\"jocco.css\" />
+  <script type=\"text/javascript\"
+    src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">
+  </script>
 </head>
 <body>
   <div id=\"container\">
@@ -124,7 +146,7 @@ end
 
 
 function highlight_docs(docs)
-    cmd = `pandoc -S -f markdown -t html`
+    cmd = `pandoc -S -f markdown -t html --mathjax`
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
