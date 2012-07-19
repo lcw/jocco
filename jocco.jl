@@ -29,6 +29,15 @@
 #
 # @Knuth:1984:LP might be something we should read when building a literate
 # programming tool.  We can also reference this in a note.[^1]
+#
+# Here is a julia code example:
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.julia .numberLines}
+# function foo(bar)
+#     bar
+# end
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 
 const code_sep = "# CUT HERE\n"
 const code_sep_html = "<span class=\"c\"># CUT HERE</span>\n"
@@ -149,7 +158,9 @@ end
 
 
 function highlight_docs(docs, path)
-    cmd = `pandoc -S -f markdown -t html --mathjax --biblio $path/docs/jocco.bib --csl $path/docs/jocco.csl`
+    cmd = `pandoc -S --biblio $path/docs/jocco.bib --csl $path/docs/jocco.csl -f markdown -t json` |
+          `runhaskell $path/docs/pygments.hs` |
+          `pandoc -S --mathjax -f json -t html`
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
