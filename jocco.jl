@@ -26,6 +26,9 @@
 # and thus an internet connection is required.
 # [MathJax](http://www.mathjax.org/) may be installed locally if offline access
 # is desited.
+#
+# @Knuth:1984:LP might be something we should read when building a literate
+# programming tool.  We can also reference this in a note.[^1]
 
 const code_sep = "# CUT HERE\n"
 const code_sep_html = "<span class=\"c\"># CUT HERE</span>\n"
@@ -145,8 +148,8 @@ function highlight_code(code)
 end
 
 
-function highlight_docs(docs)
-    cmd = `pandoc -S -f markdown -t html --mathjax`
+function highlight_docs(docs, path)
+    cmd = `pandoc -S -f markdown -t html --mathjax --biblio $path/docs/jocco.bib --csl $path/docs/jocco.csl`
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
@@ -177,7 +180,7 @@ end
 
 function generate_documentation(source, path, file, jump_to)
     code, docs = parse_source(source)
-    code, docs = highlight_code(code), highlight_docs(docs)
+    code, docs = highlight_code(code), highlight_docs(docs, path)
     generate_html(source, path, file, code, docs, jump_to)
 end
 
@@ -196,3 +199,7 @@ function main()
 end
 
 main()
+
+# ## References
+#
+# [^1]: A citation without locators [@Knuth:1984:LP].
