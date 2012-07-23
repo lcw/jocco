@@ -158,15 +158,14 @@ end
 
 
 function highlight_docs(docs, path)
-    cmd = `pandoc -S --biblio $path/docs/jocco.bib --csl $path/docs/jocco.csl -f markdown -t json` |
-          `runhaskell $path/docs/pygments.hs` |
+    cmd = `pandoc -S --biblio $path/jocco.bib --csl $path/jocco.csl -f markdown -t json` |
+          `runhaskell $path/pygments.hs` |
           `pandoc -S --mathjax -f json -t html`
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
 function generate_html(source, path, file, code, docs, jump_to)
-    outbasename = replace(file, r"jl$", "html")
-    outfile = "$path/docs/$outbasename"
+    outfile = file_path(path, replace(file, r"jl$", "html"))
     f = open(outfile, "w")
 
     h = replace(header, r"%title%", source)
@@ -199,11 +198,11 @@ function main()
     jump_to = ""
 
     for source in ARGS
-        path = chomp(readall(`dirname  $source`))
         file = chomp(readall(`basename $source`))
+        path = file_path(chomp(readall(`dirname  $source`)), "docs")
 
         # Ensure the docs directory exists
-        run(`mkdir -p $path/docs`)
+        run(`mkdir -p $path`)
 
         generate_documentation(source, path, file, jump_to)
     end
