@@ -156,11 +156,42 @@ function highlight_code(code)
     code
 end
 
+function get_files_with_extension(dir, wanted_ext)
+    files = split(chomp(readall(`ls $dir`)), "\n")
+    ext_files = Array(ASCIIString, 1, 0)
+    for f in files
+        filename = file_path(dir, f)
+        pathname, filebase, ext = fileparts(filename)
+        if(ext == wanted_ext)
+            ext_files = [ext_files filename]
+        end
+    end
+    ext_files
+end
+
+function join_arg_vals(arg, vals)
+    args = Array(ASCIIString, 1, 2*length(vals))
+    args[1:2:end] = arg
+    args[2:2:end] = vals
+    args
+end
 
 function highlight_docs(docs, path)
-    cmd = `pandoc -S --biblio $path/jocco.bib --csl $path/jocco.csl -f markdown -t json` |
-          `runhaskell $path/pygments.hs` |
-          `pandoc -S --mathjax -f json -t html`
+    bib_files = get_files_with_extension(path, ".bib")
+    csl_files = get_files_with_extension(path, ".csl")
+    pan_files = get_files_with_extension(path, ".hs")
+
+    bib_args = join_arg_vals("--bibliography", bib_files)
+    csl_args = join_arg_vals("--csl",          csl_files)
+
+    pan_args = ["-S" bib_args csl_args "-f" "markdown" "-t" "json"]
+
+    cmd = `pandoc $pan_args`
+    for p in pan_files
+        cmd = cmd | `runhaskell $p`
+    end
+    cmd  = cmd | `pandoc -S --mathjax -f json -t html`
+
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
