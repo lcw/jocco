@@ -25,7 +25,7 @@
 # Distribution Network script to turn $\LaTeX$ source into rendered output
 # and thus an internet connection is required.
 # [MathJax](http://www.mathjax.org/) may be installed locally if offline access
-# is desited.
+# is desired.
 #
 # @Knuth:1984:LP might be something we should read when building a literate
 # programming tool.  We can also reference this in a note.[^1]
