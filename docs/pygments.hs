@@ -2,7 +2,7 @@
 -- Code blocks in HTML output 
 -- Matti Pastell 2011 <matti.pastell@helsinki.fi> 
 -- More filters in https://bitbucket.org/mpastell/pandoc-filters/
--- Requires Pandoc 1.8
+-- Requires Pandoc 1.9
 
 import Text.Pandoc
 import Text.Pandoc.Shared
@@ -11,7 +11,7 @@ import System.Process (readProcess)
 import System.IO.Unsafe
 
 
-main = interact $ jsonFilter $ bottomUp highlight
+main = toJsonFilter highlight
 
 highlight :: Block -> Block
 highlight (CodeBlock (_, options , _ ) code) = RawBlock "html" (pygments code options)
