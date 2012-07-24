@@ -1,15 +1,12 @@
-# __jocco__ is a Julia port of [Docco](http://jashkenas.github.com/docco/),
-# the quick-and-dirty, hundred-line-long, literate-programming-style
-# documentation generator. It produces HTML that displays your comments
-# alongside your code. Comments are passed through
-# [pandoc](http://johnmacfarlane.net/pandoc/), and code is
-# syntax highlighted with [pygments](http://pygments.org/).
-# This page is the result of running jocco against its own source file:
+# __jocco__ is a Julia port of [Docco], the quick-and-dirty, hundred-line-long,
+# literate-programming-style documentation generator. It produces HTML that
+# displays your comments alongside your code. Comments are passed through
+# [Pandoc], and code is syntax highlighted with [Pygments].  This page is the
+# result of running jocco against its own source file:
 #
 #     julia jocco.jl jocco.jl
 #
-# Using [pandoc](http://johnmacfarlane.net/pandoc/) allows us to have math
-# inline $x=y$ or in display mode
+# Using [Pandoc] allows us to have math inline $x=y$ or in display mode
 # $$
 #   \begin{aligned}
 #     \nabla \times \vec{\mathbf{B}} -\, \frac1c\,
@@ -21,11 +18,9 @@
 #     \nabla \cdot \vec{\mathbf{B}} &= 0
 #   \end{aligned}
 # $$
-# if you wish.  This uses the [MathJax](http://www.mathjax.org/) Content
-# Distribution Network script to turn $\LaTeX$ source into rendered output
-# and thus an internet connection is required.
-# [MathJax](http://www.mathjax.org/) may be installed locally if offline access
-# is desired.
+# if you wish.  This uses the [MathJax] Content Distribution Network script to
+# turn $\LaTeX$ source into rendered output and thus an internet connection is
+# required.  [MathJax] may be installed locally if offline access is desired.
 #
 # @Knuth:1984:LP might be something we should read when building a literate
 # programming tool.  We can also reference this in a note.[^1]
@@ -244,3 +239,8 @@ main()
 # ## References
 #
 # [^1]: A citation without locators [@Knuth:1984:LP].
+#
+# [Docco]: http://jashkenas.github.com/docco/
+# [Pandoc]: http://johnmacfarlane.net/pandoc/
+# [Pygments]: http://pygments.org/
+# [MathJax]: http://www.mathjax.org/
