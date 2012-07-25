@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>jocco.jl</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="jocco.css" />
+  <script type="text/javascript"
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <table cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th class="docs">
+            <h1>
+              jocco.jl
+            </h1>
+          </th>
+          <th class="code">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+
+<tr id="section-1">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-1">&#182;</a>
+  </div>
+  <p><strong>Jocco</strong> is a <a href="http://julialang.org/">Julia</a> port of <a href="http://jashkenas.github.com/docco/">Docco</a>, the quick-and-dirty, hundred-line-long, literate-programming-style documentation generator. It produces HTML that displays your comments alongside your code. Comments are passed through <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a>, and code is syntax highlighted with <a href="http://pygments.org/">Pygments</a>. This page is the result of running Jocco against its own source file:</p>
+<div class ="highlight"><pre>julia jocco.jl jocco.jl</pre></div>
+<p>and the HTML file is generated in the <code>docs</code> directory.</p>
+<p>Using <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a> allows us to have math inline \(x=y\) or in display mode \[
+  \begin{aligned}
+    \nabla \times \vec{\mathbf{B}} -\, \frac1c\,
+    \frac{\partial\vec{\mathbf{E}}}{\partial t} &amp;=
+    \frac{4\pi}{c}\vec{\mathbf{j}} \\
+    \nabla \cdot \vec{\mathbf{E}} &amp;= 4 \pi \rho \\
+    \nabla \times \vec{\mathbf{E}}\, +\, \frac1c\,
+    \frac{\partial\vec{\mathbf{B}}}{\partial t} &amp;= \vec{\mathbf{0}} \\
+    \nabla \cdot \vec{\mathbf{B}} &amp;= 0
+  \end{aligned}
+\] if you wish. This uses the <a href="http://www.mathjax.org/">MathJax</a> Content Distribution Network script to turn \(\LaTeX\) source into rendered output and thus an internet connection is required. <a href="http://www.mathjax.org/">MathJax</a> may be installed locally if offline access is desired.</p>
+<p><span class="citation">Knuth (1984)</span> might be something we should read when building a literate programming tool. We can also reference this in a note.<sup><a href="#fn1" class="footnoteRef" id="fnref1">1</a></sup></p>
+<p>This <a href="http://julialang.org/">Julia</a> port of <a href="http://jashkenas.github.com/docco/">Docco</a> is roughly structured the same as the <a href="http://lua.org/">Lua</a> port <a href="http://rgieseke.github.com/locco/">Locco</a>. Its source is released in the public domain and is available on <a href="http://github.com/lcw/jocco">GitHub</a>.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre>
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-2">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-2">&#182;</a>
+  </div>
+  <p>We use comments to separate the different chunks of code so that they can all be processed together with <a href="http://pygments.org/">Pygments</a> and the HTML can be split up after. Likewise, we use level five headers to separate the chunks of documentation.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="kd">const</span> <span class="n">code_sep</span> <span class="o">=</span> <span class="s">&quot;# CUT HERE</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="kd">const</span> <span class="n">code_sep_html</span> <span class="o">=</span> <span class="s">&quot;&lt;span class=</span><span class="se">\&quot;</span><span class="s">c</span><span class="se">\&quot;</span><span class="s">&gt;# CUT HERE&lt;/span&gt;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="kd">const</span> <span class="n">docs_sep</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">##### CUT HERE</span><span class="se">\n\n</span><span class="s">&quot;</span>
+<span class="kd">const</span> <span class="n">docs_sep_html</span> <span class="o">=</span> <span class="n">r</span><span class="s">&quot;&lt;h5 id=</span><span class="se">\&quot;</span><span class="s">cut-here.*</span><span class="se">\&quot;</span><span class="s">&gt;CUT HERE&lt;/h5&gt;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-3">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-3">&#182;</a>
+  </div>
+  <p>For now we leave the HTML template hard coded.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="kd">const</span> <span class="n">header</span> <span class="o">=</span> <span class="s">&quot;&lt;!DOCTYPE html&gt;</span>
+
+<span class="s">&lt;html&gt;</span>
+<span class="s">&lt;head&gt;</span>
+<span class="s">  &lt;title&gt;%title%&lt;/title&gt;</span>
+<span class="s">  &lt;meta http-equiv=</span><span class="se">\&quot;</span><span class="s">content-type</span><span class="se">\&quot;</span><span class="s"> content=</span><span class="se">\&quot;</span><span class="s">text/html; charset=UTF-8</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">  &lt;link rel=</span><span class="se">\&quot;</span><span class="s">stylesheet</span><span class="se">\&quot;</span><span class="s"> media=</span><span class="se">\&quot;</span><span class="s">all</span><span class="se">\&quot;</span><span class="s"> href=</span><span class="se">\&quot;</span><span class="s">jocco.css</span><span class="se">\&quot;</span><span class="s"> /&gt;</span>
+<span class="s">  &lt;script type=</span><span class="se">\&quot;</span><span class="s">text/javascript</span><span class="se">\&quot;</span><span class="s"></span>
+<span class="s">    src=</span><span class="se">\&quot;</span><span class="s">http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">  &lt;/script&gt;</span>
+<span class="s">&lt;/head&gt;</span>
+<span class="s">&lt;body&gt;</span>
+<span class="s">  &lt;div id=</span><span class="se">\&quot;</span><span class="s">container</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">    &lt;div id=</span><span class="se">\&quot;</span><span class="s">background</span><span class="se">\&quot;</span><span class="s">&gt;&lt;/div&gt;</span>
+<span class="s">    &lt;table cellpadding=</span><span class="se">\&quot;</span><span class="s">0</span><span class="se">\&quot;</span><span class="s"> cellspacing=</span><span class="se">\&quot;</span><span class="s">0</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">      &lt;thead&gt;</span>
+<span class="s">        &lt;tr&gt;</span>
+<span class="s">          &lt;th class=</span><span class="se">\&quot;</span><span class="s">docs</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">            &lt;h1&gt;</span>
+<span class="s">              %title%</span>
+<span class="s">            &lt;/h1&gt;</span>
+<span class="s">          &lt;/th&gt;</span>
+<span class="s">          &lt;th class=</span><span class="se">\&quot;</span><span class="s">code</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">          &lt;/th&gt;</span>
+<span class="s">        &lt;/tr&gt;</span>
+<span class="s">      &lt;/thead&gt;</span>
+<span class="s">      &lt;tbody&gt;</span>
+<span class="s">&quot;</span>
+
+<span class="kd">const</span> <span class="n">table_entry</span> <span class="o">=</span> <span class="s">&quot;</span>
+<span class="s">&lt;tr id=</span><span class="se">\&quot;</span><span class="s">section-%index%</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">&lt;td class=</span><span class="se">\&quot;</span><span class="s">docs</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">  &lt;div class=</span><span class="se">\&quot;</span><span class="s">pilwrap</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">    &lt;a class=</span><span class="se">\&quot;</span><span class="s">pilcrow</span><span class="se">\&quot;</span><span class="s"> href=</span><span class="se">\&quot;</span><span class="s">#section-%index%</span><span class="se">\&quot;</span><span class="s">&gt;&amp;#182;&lt;/a&gt;</span>
+<span class="s">  &lt;/div&gt;</span>
+<span class="s">  %docs_html%</span>
+<span class="s">&lt;/td&gt;</span>
+<span class="s">&lt;td class=</span><span class="se">\&quot;</span><span class="s">code</span><span class="se">\&quot;</span><span class="s">&gt;</span>
+<span class="s">&lt;div class=</span><span class="se">\&quot;</span><span class="s">highlight</span><span class="se">\&quot;</span><span class="s">&gt;&lt;pre&gt;%code_html%</span>
+<span class="s">&lt;/pre&gt;&lt;/div&gt;</span>
+<span class="s">&lt;/td&gt;</span>
+<span class="s">&lt;/tr&gt;</span>
+<span class="s">&quot;</span>
+
+<span class="kd">const</span> <span class="n">footer</span> <span class="o">=</span> <span class="s">&quot;</span>
+<span class="s">      &lt;/tbody&gt;</span>
+<span class="s">    &lt;/table&gt;</span>
+<span class="s">  &lt;/div&gt;</span>
+<span class="s">&lt;/body&gt;</span>
+<span class="s">&lt;/html&gt;&quot;</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-4">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-4">&#182;</a>
+  </div>
+  <p>This function splits the <code>source</code> text into an array of documentation sections and code sections.</p>
+<table>
+<col width="15%" />
+<col width="84%" />
+<thead>
+<tr class="header">
+<th align="left">Parameters:</th>
+<th align="left"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>source</code></td>
+<td align="left">An <code class="julia">ASCIIString</code> of the document source to be parsed.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<col width="15%" />
+<col width="84%" />
+<thead>
+<tr class="header">
+<th align="left">Returns:</th>
+<th align="left"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>code</code></td>
+<td align="left">An array of the code sections.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>docs</code></td>
+<td align="left">An array of the documentation sections.</td>
+</tr>
+</tbody>
+</table>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> parse_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">code</span><span class="p">,</span> <span class="n">docs</span> <span class="o">=</span> <span class="n">ASCIIString</span><span class="p">[],</span> <span class="n">ASCIIString</span><span class="p">[]</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+    <span class="n">has_code</span> <span class="o">=</span> <span class="n">false</span>
+    <span class="n">code_text</span><span class="p">,</span> <span class="n">docs_text</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="k">in</span> <span class="n">readlines</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">chomp</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">match</span><span class="p">(</span><span class="n">r</span><span class="s">&quot;^\s*(?:#\s(.*?)\s*</span><span class="si">$</span><span class="s">|</span><span class="si">$</span><span class="s">)&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="n">nothing</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">match</span><span class="p">(</span><span class="n">r</span><span class="s">&quot;^\s*#()</span><span class="si">$</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">end</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="n">nothing</span> <span class="o">||</span> <span class="n">m</span><span class="o">.</span><span class="n">captures</span> <span class="o">==</span> <span class="p">(</span><span class="n">nothing</span><span class="p">,)</span>
+            <span class="n">has_code</span> <span class="o">=</span> <span class="n">true</span>
+            <span class="n">code_text</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">$</span><span class="s">code_text</span><span class="si">$</span><span class="s">line</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">else</span>
+            <span class="k">if</span> <span class="n">has_code</span>
+                <span class="n">code</span> <span class="o">=</span> <span class="n">push</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
+                <span class="n">docs</span> <span class="o">=</span> <span class="n">push</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">docs_text</span><span class="p">)</span>
+
+                <span class="n">has_code</span> <span class="o">=</span> <span class="n">false</span>
+                <span class="n">code_text</span><span class="p">,</span> <span class="n">docs_text</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+            <span class="k">end</span>
+            <span class="p">(</span><span class="n">doc_line</span><span class="p">,)</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">captures</span>
+            <span class="n">docs_text</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">$</span><span class="s">docs_text</span><span class="si">$</span><span class="s">doc_line</span><span class="se">\n</span><span class="s">&quot;</span>
+        <span class="k">end</span>
+    <span class="k">end</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">push</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">code_text</span><span class="p">)</span>
+    <span class="n">docs</span> <span class="o">=</span> <span class="n">push</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">docs_text</span><span class="p">)</span>
+
+    <span class="n">close</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">code</span><span class="p">,</span> <span class="n">docs</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-5">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-5">&#182;</a>
+  </div>
+  <p>This function is common to the code and documentation highlighting. It is used to join text segments using <code>sep_in</code> to be processed by <code>cmd</code> as one file and then split back into sections using <code>sep_out</code>.</p>
+<table>
+<col width="17%" />
+<col width="82%" />
+<thead>
+<tr class="header">
+<th align="left">Parameters:</th>
+<th align="left"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>text_array</code></td>
+<td align="left">An array of text segments to be highlighted as one document.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>sep_in</code></td>
+<td align="left">An <code class="julia">ASCIIString</code> which is inserted between text segments.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>sep_out</code></td>
+<td align="left">An <code class="julia">ASCIIString</code> searched for as a <code>--- CUT HERE ---</code> line to split the sections. This string is removed from the returned from returned segments.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>cmd</code></td>
+<td align="left">The joined text will be written to this <code class="julia">Cmd</code> and the text which will be split and returned will also be read from this <code class="julia">Cmd</code>.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<col width="15%" />
+<col width="84%" />
+<thead>
+<tr class="header">
+<th align="left">Returns:</th>
+<th align="left"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">An array of highlighted text with a corresponding entry for each passed in segment.</td>
+</tr>
+</tbody>
+</table>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> highlight</span><span class="p">(</span><span class="n">text_array</span><span class="p">,</span> <span class="n">sep_in</span><span class="p">,</span> <span class="n">sep_out</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+    <span class="n">write_stream</span> <span class="o">=</span> <span class="n">fdio</span><span class="p">(</span><span class="n">write_to</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">true</span><span class="p">)</span>
+    <span class="n">read_stream</span> <span class="o">=</span> <span class="n">fdio</span><span class="p">(</span><span class="n">read_from</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="n">true</span><span class="p">)</span>
+
+    <span class="n">spawn</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="n">write</span><span class="p">(</span><span class="n">write_stream</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">text_array</span><span class="p">,</span> <span class="n">sep_in</span><span class="p">))</span>
+    <span class="n">close</span><span class="p">(</span><span class="n">write_stream</span><span class="p">)</span>
+
+    <span class="n">text_out</span> <span class="o">=</span> <span class="n">readall</span><span class="p">(</span><span class="n">read_stream</span><span class="p">)</span>
+    <span class="n">close</span><span class="p">(</span><span class="n">read_stream</span><span class="p">)</span>
+
+    <span class="n">wait</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="n">split</span><span class="p">(</span><span class="n">text_out</span><span class="p">,</span> <span class="n">sep_out</span><span class="p">)</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-6">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-6">&#182;</a>
+  </div>
+  <p>This highlights the code using <code>pygmentize</code>. Here we assume the code is written in <a href="http://julialang.org/">Julia</a>. We remove the <code class="sourceCode html"><span class="kw">&lt;div&gt;</span></code> and <code class="sourceCode html"><span class="kw">&lt;pre&gt;</span></code> tags first and last segments so that each segment can be wrapped in their own tags using the template.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> highlight_code</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="sb">`pygmentize -l julia -f html -O encoding=utf8`</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">highlight</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">code_sep</span><span class="p">,</span> <span class="n">code_sep_html</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">length</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">code</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">code</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&quot;&lt;div class=</span><span class="se">\&quot;</span><span class="s">highlight</span><span class="se">\&quot;</span><span class="s">&gt;&lt;pre&gt;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">code</span><span class="p">[</span><span class="n">length</span><span class="p">(</span><span class="n">code</span><span class="p">)]</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">code</span><span class="p">[</span><span class="n">length</span><span class="p">(</span><span class="n">code</span><span class="p">)],</span> <span class="s">&quot;&lt;/pre&gt;&lt;/div&gt;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">end</span>
+    <span class="n">code</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-7">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-7">&#182;</a>
+  </div>
+  <p>This returns an array of file names in the directory <code>dir</code> with the extension <code>wanted_ext</code>.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> get_files_with_extension</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">wanted_ext</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">chomp</span><span class="p">(</span><span class="n">readall</span><span class="p">(</span><span class="sb">`ls $dir`</span><span class="p">)),</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="n">ext_files</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">ASCIIString</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="k">in</span> <span class="n">files</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">file_path</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="n">pathname</span><span class="p">,</span> <span class="n">filebase</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">fileparts</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">ext</span> <span class="o">==</span> <span class="n">wanted_ext</span><span class="p">)</span>
+            <span class="n">ext_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">ext_files</span> <span class="n">filename</span><span class="p">]</span>
+        <span class="k">end</span>
+    <span class="k">end</span>
+    <span class="n">ext_files</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-8">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-8">&#182;</a>
+  </div>
+  <p>This joins an argument <code>arg</code> array <code>vals</code> such that <code>args</code> is returned as:</p>
+<div class ="highlight"><pre>args = [arg, vals[1], arg, vals[2], arg, vals[3], ...]</pre></div>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> join_arg_vals</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">ASCIIString</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">length</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+    <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span><span class="k">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg</span>
+    <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span><span class="k">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">vals</span>
+    <span class="n">args</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-9">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-9">&#182;</a>
+  </div>
+  <p>Here the documentation is passed through <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a> using its extension of markdown to generate the HTML. BibTeX files that are stored in the <code>docs</code> directory are passed into <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a> through with the <code>--bibliography</code> argument. Like wise <a href="http://citationstyles.org/">Citation Style Language</a> (CSL) files found in the <code>docs</code> directory are passed into <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a> with the <code>--csl</code> argument.</p>
+<p>Further any files with the extension <code>.hs</code> in the <code>docs</code> directory are considered [Pandoc] <a href="http://johnmacfarlane.net/pandoc/scripting.html">scripting</a> filters which read and write <a href="http://johnmacfarlane.net/pandoc/">Pandoc</a> AST in <a href="http://www.json.org/">JSON</a> format. In the Jocco docs directory there are two filters such filters. The first <code>doiLinks.hs</code> adds a hyperlink to DOI citation entries. The second <code>pygments.hs</code> from <a href="https://bitbucket.org/mpastell/pandoc-filters/">Matti Pastell</a> uses <a href="http://pygments.org/">Pygments</a> to highlight code blocks. This way we can have highlighted Julia code on the documentation side too like this:</p>
+<div class="highlight"><pre><span class="lineno">1</span> <span class="k">function</span><span class="nf"> foo</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+<span class="lineno">2</span>     <span class="n">bar</span>
+<span class="lineno">3</span> <span class="k">end</span>
+</pre></div>
+
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> highlight_docs</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">bib_files</span> <span class="o">=</span> <span class="n">get_files_with_extension</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;.bib&quot;</span><span class="p">)</span>
+    <span class="n">csl_files</span> <span class="o">=</span> <span class="n">get_files_with_extension</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;.csl&quot;</span><span class="p">)</span>
+    <span class="n">pan_files</span> <span class="o">=</span> <span class="n">get_files_with_extension</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;.hs&quot;</span><span class="p">)</span>
+
+    <span class="n">bib_args</span> <span class="o">=</span> <span class="n">join_arg_vals</span><span class="p">(</span><span class="s">&quot;--bibliography&quot;</span><span class="p">,</span> <span class="n">bib_files</span><span class="p">)</span>
+    <span class="n">csl_args</span> <span class="o">=</span> <span class="n">join_arg_vals</span><span class="p">(</span><span class="s">&quot;--csl&quot;</span><span class="p">,</span>          <span class="n">csl_files</span><span class="p">)</span>
+
+    <span class="n">pan_args</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;-S&quot;</span> <span class="n">bib_args</span> <span class="n">csl_args</span> <span class="s">&quot;-f&quot;</span> <span class="s">&quot;markdown&quot;</span> <span class="s">&quot;-t&quot;</span> <span class="s">&quot;json&quot;</span><span class="p">]</span>
+
+    <span class="n">cmd</span> <span class="o">=</span> <span class="sb">`pandoc $pan_args`</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="k">in</span> <span class="n">pan_files</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">|</span> <span class="sb">`runhaskell $p`</span>
+    <span class="k">end</span>
+    <span class="n">cmd</span>  <span class="o">=</span> <span class="n">cmd</span> <span class="o">|</span> <span class="sb">`pandoc -S --mathjax -f json -t html`</span>
+
+    <span class="n">docs</span> <span class="o">=</span> <span class="n">highlight</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">docs_sep</span><span class="p">,</span> <span class="n">docs_sep_html</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-10">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-10">&#182;</a>
+  </div>
+  <p>Here the generated code and documentation is substituted into the templates and written to the HTML file.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> generate_html</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">docs</span><span class="p">,</span> <span class="n">jump_to</span><span class="p">)</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="n">file_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">replace</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">r</span><span class="s">&quot;jl</span><span class="si">$</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;html&quot;</span><span class="p">))</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+
+    <span class="n">h</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">r</span><span class="s">&quot;%title%&quot;</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
+    <span class="nb">assert</span><span class="p">(</span><span class="n">length</span><span class="p">(</span><span class="n">code</span><span class="p">)</span><span class="o">==</span><span class="n">length</span><span class="p">(</span><span class="n">docs</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">table_entry</span><span class="p">,</span> <span class="n">r</span><span class="s">&quot;%index%&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="s">&quot;%docs_html%&quot;</span><span class="p">,</span> <span class="n">docs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="s">&quot;%code_html%&quot;</span><span class="p">,</span> <span class="n">code</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">footer</span><span class="p">)</span>
+
+    <span class="n">close</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">println</span><span class="p">(</span><span class="s">&quot;</span><span class="si">$</span><span class="s">file --&gt; </span><span class="si">$</span><span class="s">outfile&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="k">function</span><span class="nf"> generate_documentation</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">jump_to</span><span class="p">)</span>
+    <span class="n">code</span><span class="p">,</span> <span class="n">docs</span> <span class="o">=</span> <span class="n">parse_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">code</span><span class="p">,</span> <span class="n">docs</span> <span class="o">=</span> <span class="n">highlight_code</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="n">highlight_docs</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">generate_html</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">docs</span><span class="p">,</span> <span class="n">jump_to</span><span class="p">)</span>
+<span class="k">end</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-11">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-11">&#182;</a>
+  </div>
+  <p>Documentation is generated in the <code>docs</code> directory for all of the files pass in as arguments to this program.</p>
+
+</td>
+<td class="code">
+<div class="highlight"><pre><span class="k">function</span><span class="nf"> main</span><span class="p">()</span>
+    <span class="n">jump_to</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">source</span> <span class="k">in</span> <span class="n">ARGS</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">chomp</span><span class="p">(</span><span class="n">readall</span><span class="p">(</span><span class="sb">`basename $source`</span><span class="p">))</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">file_path</span><span class="p">(</span><span class="n">chomp</span><span class="p">(</span><span class="n">readall</span><span class="p">(</span><span class="sb">`dirname  $source`</span><span class="p">)),</span> <span class="s">&quot;docs&quot;</span><span class="p">)</span>
+
+        <span class="n">run</span><span class="p">(</span><span class="sb">`mkdir -p $path`</span><span class="p">)</span>
+
+        <span class="n">generate_documentation</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">jump_to</span><span class="p">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">main</span><span class="p">()</span>
+
+
+</pre></div>
+</td>
+</tr>
+
+<tr id="section-12">
+<td class="docs">
+  <div class="pilwrap">
+    <a class="pilcrow" href="#section-12">&#182;</a>
+  </div>
+  <h2 id="references">References</h2>
+<p>Knuth, Donald E. 1984. “Literate Programming.” <em>The Computer Journal</em> 27 (May): 97–111. doi:<a href="http://dx.doi.org/10.1093/comjnl/27.2.97">10.1093/comjnl/27.2.97</a>.</p>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>A citation without locators <span class="citation">(Knuth 1984)</span>.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
+
+</td>
+<td class="code">
+<div class="highlight"><pre>
+
+</pre></div>
+</td>
+</tr>
+
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
