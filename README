@@ -5,5 +5,5 @@
                             /|
                             \|
 
-julocco is a simple literate-programming-style documentation generator for
-julia.
+Jocco is a simple literate-programming-style documentation generator for
+Julia.
