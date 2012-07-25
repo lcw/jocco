@@ -1,8 +1,8 @@
-# __jocco__ is a Julia port of [Docco], the quick-and-dirty, hundred-line-long,
-# literate-programming-style documentation generator. It produces HTML that
-# displays your comments alongside your code. Comments are passed through
-# [Pandoc], and code is syntax highlighted with [Pygments].  This page is the
-# result of running jocco against its own source file:
+# __Jocco__ is a [Julia] port of [Docco], the quick-and-dirty,
+# hundred-line-long, literate-programming-style documentation generator. It
+# produces HTML that displays your comments alongside your code. Comments are
+# passed through [Pandoc], and code is syntax highlighted with [Pygments].
+# This page is the result of running Jocco against its own source file:
 #
 #     julia jocco.jl jocco.jl
 #
@@ -25,6 +25,10 @@
 # @Knuth:1984:LP might be something we should read when building a literate
 # programming tool.  We can also reference this in a note.[^1]
 #
+# This port of [Docco] is roughly structured the same as the [Lua] port
+# [Locco].  Its source is released in the public domain and is available on
+# [GitHub](http://lcw.github.com/jocco/).
+#
 # Here is a julia code example:
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.julia .numberLines}
@@ -32,13 +36,16 @@
 #     bar
 # end
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
 
+# We use comments to separate the different chunks of code so that they can all
+# be processed together with [Pygments] and the HTML can be split up after.
+# Likewise, we use level five headers to separate the chunks of documentation.
 const code_sep = "# CUT HERE\n"
 const code_sep_html = "<span class=\"c\"># CUT HERE</span>\n"
 const docs_sep = "\n##### CUT HERE\n\n"
 const docs_sep_html = r"<h5 id=\"cut-here.*\">CUT HERE</h5>\n"
 
+# For now we leave the HTML template hard coded.
 const header = "<!DOCTYPE html>
 
 <html>
@@ -90,6 +97,21 @@ const footer = "
 </body>
 </html>"
 
+#
+# This function splits the `source` text into an array of documentation
+# sections and code sections.
+#
+# Parameters:
+# ----------- ----------------------------------------------------------------
+# `source`    An `ASCIIString`{.julia} of the document source to be parsed.
+# ----------------------------------------------------------------------------
+#
+# Returns:
+# ---------   ----------------------------------------------------------------
+# `code`      An array of the code sections.
+# `docs`      An array of the documentation sections.
+# ----------------------------------------------------------------------------
+#
 function parse_source(source)
     code, docs = ASCIIString[], ASCIIString[]
     f = open(source)
@@ -124,6 +146,34 @@ function parse_source(source)
     code, docs
 end
 
+# This function is common to the code and documentation highlighting.  It is
+# used to join text segments using `sep_in` to be processed by `cmd` as one
+# file and then split back into sections using `sep_out`.
+#
+# Parameters:
+#
+# ------------ ---------------------------------------------------------------
+# `text_array` An array of text segments to be highlighted as one document.
+#
+# `sep_in`     An `ASCIIString`{.julia} which is inserted between text
+#              segments.
+#
+# `sep_out`    An `ASCIIString`{.julia} searched for as a `--- CUT HERE ---`
+#              line to split the sections.  This string is removed from the
+#              returned from returned segments.
+#
+# `cmd`        The joined text will be written to this `Cmd`{.julia} and the
+#              text which will be split and returned will also be read from
+#              this `Cmd`{.julia}.
+# ----------------------------------------------------------------------------
+#
+# Returns:
+#
+# ---------   ----------------------------------------------------------------
+#             An array of highlighted text with a corresponding entry for each
+#             passed in segment.
+# ----------------------------------------------------------------------------
+#
 function highlight(text_array, sep_in, sep_out, cmd)
     write_stream = fdio(write_to(cmd).fd, true)
     read_stream = fdio(read_from(cmd).fd, true)
@@ -141,6 +191,7 @@ function highlight(text_array, sep_in, sep_out, cmd)
     split(text_out, sep_out)
 end
 
+# 
 function highlight_code(code)
     cmd = `pygmentize -l julia -f html -O encoding=utf8`
     code = highlight(code, code_sep, code_sep_html, cmd)
@@ -242,5 +293,8 @@ main()
 #
 # [Docco]: http://jashkenas.github.com/docco/
 # [Pandoc]: http://johnmacfarlane.net/pandoc/
-# [Pygments]: http://pygments.org/
+# [Julia]: http://julialang.org/
+# [Lua]: http://lua.org/
+# [Locco]: http://rgieseke.github.com/locco/
 # [MathJax]: http://www.mathjax.org/
+# [Pygments]: http://pygments.org/
