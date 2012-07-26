@@ -101,14 +101,17 @@ const footer = "
 # This function splits the `source` text into an array of documentation
 # sections and code sections.
 #
+# ----------------------------------------------------------------------------
 # Parameters:
 # ----------- ----------------------------------------------------------------
 # `source`    An `ASCIIString`{.julia} of the document source to be parsed.
 # ----------------------------------------------------------------------------
 #
+# ----------------------------------------------------------------------------
 # Returns:
 # ---------   ----------------------------------------------------------------
 # `code`      An array of the code sections.
+#
 # `docs`      An array of the documentation sections.
 # ----------------------------------------------------------------------------
 #
@@ -150,8 +153,8 @@ end
 # used to join text segments using `sep_in` to be processed by `cmd` as one
 # file and then split back into sections using `sep_out`.
 #
+# ----------------------------------------------------------------------------
 # Parameters:
-#
 # ------------ ---------------------------------------------------------------
 # `text_array` An array of text segments to be highlighted as one document.
 #
@@ -167,8 +170,8 @@ end
 #              this `Cmd`{.julia}.
 # ----------------------------------------------------------------------------
 #
+# ----------------------------------------------------------------------------
 # Returns:
-#
 # ---------   ----------------------------------------------------------------
 #             An array of highlighted text with a corresponding entry for each
 #             passed in segment.
