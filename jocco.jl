@@ -6,6 +6,8 @@
 #
 #     julia jocco.jl jocco.jl
 #
+# and the HTML file is generated in the `docs` directory.
+#
 # Using [Pandoc] allows us to have math inline $x=y$ or in display mode
 # $$
 #   \begin{aligned}
@@ -25,17 +27,10 @@
 # @Knuth:1984:LP might be something we should read when building a literate
 # programming tool.  We can also reference this in a note.[^1]
 #
-# This port of [Docco] is roughly structured the same as the [Lua] port
-# [Locco].  Its source is released in the public domain and is available on
-# [GitHub](http://github.com/lcw/jocco).
+# This [Julia] port of [Docco] is roughly structured the same as the [Lua]
+# port [Locco].  Its source is released in the public domain and is available
+# on [GitHub](http://github.com/lcw/jocco).
 #
-# Here is a julia code example:
-#
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.julia .numberLines}
-# function foo(bar)
-#     bar
-# end
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # We use comments to separate the different chunks of code so that they can all
 # be processed together with [Pygments] and the HTML can be split up after.
@@ -194,7 +189,10 @@ function highlight(text_array, sep_in, sep_out, cmd)
     split(text_out, sep_out)
 end
 
-# 
+# This highlights the code using `pygmentize`.  Here we assume the code is
+# written in [Julia].  We remove the `<div>`{.html} and `<pre>`{.html} tags
+# first and last segments so that each segment can be wrapped in their own
+# tags using the template.
 function highlight_code(code)
     cmd = `pygmentize -l julia -f html -O encoding=utf8`
     code = highlight(code, code_sep, code_sep_html, cmd)
@@ -205,6 +203,8 @@ function highlight_code(code)
     code
 end
 
+# This returns an array of file names in the directory `dir` with the
+# extension `wanted_ext`.
 function get_files_with_extension(dir, wanted_ext)
     files = split(chomp(readall(`ls $dir`)), "\n")
     ext_files = Array(ASCIIString, 1, 0)
@@ -218,6 +218,10 @@ function get_files_with_extension(dir, wanted_ext)
     ext_files
 end
 
+# This joins an argument `arg` array `vals` such that `args` is returned as:
+#
+#     args = [arg, vals[1], arg, vals[2], arg, vals[3], ...]
+#
 function join_arg_vals(arg, vals)
     args = Array(ASCIIString, 1, 2*length(vals))
     args[1:2:end] = arg
@@ -225,6 +229,29 @@ function join_arg_vals(arg, vals)
     args
 end
 
+# Here the documentation is passed through [Pandoc] using its extension of
+# markdown to generate the HTML.  BibTeX files that are stored in the
+# `docs` directory are passed into [Pandoc] through with the `--bibliography`
+# argument.  Like wise [Citation Style Language](http://citationstyles.org/)
+# (CSL) files found in the `docs` directory are passed into [Pandoc] with the
+# `--csl` argument.
+#
+# Further any files with the extension `.hs` in the `docs` directory are
+# considered [Pandoc]
+# [scripting](http://johnmacfarlane.net/pandoc/scripting.html) filters which
+# read and write [Pandoc] AST in [JSON] format.  In the Jocco docs directory
+# there are two filters such filters.  The first `doiLinks.hs` adds a
+# hyperlink to DOI citation entries.  The second `pygments.hs` from [Matti
+# Pastell](https://bitbucket.org/mpastell/pandoc-filters/) uses [Pygments] to
+# highlight code blocks.  This way we can have highlighted Julia code on the
+# documentation side too like this:
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.julia .numberLines}
+# function foo(bar)
+#     bar
+# end
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 function highlight_docs(docs, path)
     bib_files = get_files_with_extension(path, ".bib")
     csl_files = get_files_with_extension(path, ".csl")
@@ -244,6 +271,8 @@ function highlight_docs(docs, path)
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
 end
 
+# Here the generated code and documentation is substituted into the templates
+# and written to the HTML file.
 function generate_html(source, path, file, code, docs, jump_to)
     outfile = file_path(path, replace(file, r"jl$", "html"))
     f = open(outfile, "w")
@@ -265,15 +294,14 @@ function generate_html(source, path, file, code, docs, jump_to)
     println("$file --> $outfile")
 end
 
-# Here is some more documentation
-# lets see if we can find it
-
 function generate_documentation(source, path, file, jump_to)
     code, docs = parse_source(source)
     code, docs = highlight_code(code), highlight_docs(docs, path)
     generate_html(source, path, file, code, docs, jump_to)
 end
 
+# Documentation is generated in the `docs` directory for all of the files pass
+# in as arguments to this program.
 function main()
     jump_to = ""
 
@@ -281,7 +309,6 @@ function main()
         file = chomp(readall(`basename $source`))
         path = file_path(chomp(readall(`dirname  $source`)), "docs")
 
-        # Ensure the docs directory exists
         run(`mkdir -p $path`)
 
         generate_documentation(source, path, file, jump_to)
@@ -296,6 +323,7 @@ main()
 #
 # [Docco]: http://jashkenas.github.com/docco/
 # [Pandoc]: http://johnmacfarlane.net/pandoc/
+# [JSON]: http://www.json.org/
 # [Julia]: http://julialang.org/
 # [Lua]: http://lua.org/
 # [Locco]: http://rgieseke.github.com/locco/
