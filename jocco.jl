@@ -27,7 +27,7 @@
 #
 # This port of [Docco] is roughly structured the same as the [Lua] port
 # [Locco].  Its source is released in the public domain and is available on
-# [GitHub](http://lcw.github.com/jocco/).
+# [GitHub](http://github.com/lcw/jocco).
 #
 # Here is a julia code example:
 #
