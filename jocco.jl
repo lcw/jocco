@@ -282,8 +282,18 @@ function generate_html(source, path, file, code, docs, jump_to)
     h = replace(header, r"%title%", source)
     write(f, h)
 
+    lines = max(length(docs), length(code))
+
+    # Pad code and docs arrays so they have the same number of lines
+    while (length(docs) < lines)
+        push!(docs, "")
+    end
+    while (length(code) < lines)
+        push!(code, "")
+    end
+
     assert(length(code)==length(docs))
-    for i = 1:length(code)
+    for i = 1:lines
         t = replace(table_entry, r"%index%", i)
         t = replace(t, r"%docs_html%", docs[i])
         t = replace(t, r"%code_html%", code[i])
