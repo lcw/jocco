@@ -116,7 +116,9 @@ function parse_source(source)
 
     has_code = false
     code_text, docs_text = "", ""
-    for line in readlines(f)
+
+    while (!eof(f))
+        line = readline(f)
         line = chomp(line)
         m = match(r"^\s*(?:#\s(.*?)\s*$|$)", line)
         if m == nothing
@@ -127,18 +129,20 @@ function parse_source(source)
             code_text = "$code_text$line\n"
         else
             if has_code
-                code = push(code, code_text)
-                docs = push(docs, docs_text)
+                push!(code, code_text)
+                push!(docs, docs_text)
 
                 has_code = false
                 code_text, docs_text = "", ""
             end
             (doc_line,) = m.captures
-            docs_text = "$docs_text$doc_line\n"
+            if(doc_line != nothing)
+                docs_text = "$docs_text$doc_line\n"
+            end
         end
     end
-    code = push(code, code_text)
-    docs = push(docs, docs_text)
+    push!(code, code_text)
+    push!(docs, docs_text)
 
     close(f)
     code, docs
@@ -173,18 +177,13 @@ end
 # ----------------------------------------------------------------------------
 #
 function highlight(text_array, sep_in, sep_out, cmd)
-    write_stream = fdio(write_to(cmd).fd, true)
-    read_stream = fdio(read_from(cmd).fd, true)
-
-    spawn(cmd)
+    read_stream, write_stream, proc = readandwrite(cmd)
 
     write(write_stream, join(text_array, sep_in))
     close(write_stream)
 
     text_out = readall(read_stream)
     close(read_stream)
-
-    wait(cmd)
 
     split(text_out, sep_out)
 end
@@ -200,6 +199,7 @@ function highlight_code(code)
         code[1] = replace(code[1], "<div class=\"highlight\"><pre>", "")
         code[length(code)] = replace(code[length(code)], "</pre></div>", "")
     end
+    unshift!(code,"")
     code
 end
 
@@ -209,8 +209,9 @@ function get_files_with_extension(dir, wanted_ext)
     files = split(chomp(readall(`ls $dir`)), "\n")
     ext_files = Array(ASCIIString, 1, 0)
     for f in files
-        filename = file_path(dir, f)
-        pathname, filebase, ext = fileparts(filename)
+        filename = joinpath(dir, f)
+        ext = splitext(filename)[2]
+        pathname, filebase = splitdir(filename)
         if(ext == wanted_ext)
             ext_files = [ext_files filename]
         end
@@ -269,12 +270,13 @@ function highlight_docs(docs, path)
     cmd  = cmd | `pandoc -S --mathjax -f json -t html`
 
     docs = highlight(docs, docs_sep, docs_sep_html, cmd)
+
 end
 
 # Here the generated code and documentation is substituted into the templates
 # and written to the HTML file.
 function generate_html(source, path, file, code, docs, jump_to)
-    outfile = file_path(path, replace(file, r"jl$", "html"))
+    outfile = joinpath(path, replace(file, r"jl$", "html"))
     f = open(outfile, "w")
 
     h = replace(header, r"%title%", source)
@@ -307,7 +309,7 @@ function main()
 
     for source in ARGS
         file = chomp(readall(`basename $source`))
-        path = file_path(chomp(readall(`dirname  $source`)), "docs")
+        path = joinpath(chomp(readall(`dirname  $source`)), "docs")
 
         run(`mkdir -p $path`)
 
