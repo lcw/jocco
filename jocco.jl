@@ -241,7 +241,8 @@ end
 # considered [Pandoc]
 # [scripting](http://johnmacfarlane.net/pandoc/scripting.html) filters which
 # read and write [Pandoc] AST in [JSON] format.  In the Jocco docs directory
-# there are two filters such filters.  The first `doiLinks.hs` adds a
+# there are two such filters, which must be copied to the docs directory of
+# any project you wish to use with jocco.  The first `doiLinks.hs` adds a
 # hyperlink to DOI citation entries.  The second `pygments.hs` from [Matti
 # Pastell](https://bitbucket.org/mpastell/pandoc-filters/) uses [Pygments] to
 # highlight code blocks.  This way we can have highlighted Julia code on the
