@@ -237,12 +237,21 @@ end
 # (CSL) files found in the `docs` directory are passed into [Pandoc] with the
 # `--csl` argument.
 #
+# To use jocco with any other project, copy the contents of the /jocco/docs
+# directory to the docs directory of the project.
+#
 # Further any files with the extension `.hs` in the `docs` directory are
 # considered [Pandoc]
 # [scripting](http://johnmacfarlane.net/pandoc/scripting.html) filters which
 # read and write [Pandoc] AST in [JSON] format.  In the Jocco docs directory
-# there are two such filters, which must be copied to the docs directory of
-# any project you wish to use with jocco.  The first `doiLinks.hs` adds a
+# there are two such filters, which also must be copied to the docs directory of
+# any project you wish to use with jocco. You must also have Haskell (ghc) and the
+# Haskell platform installed (haskell-platform), and then run 'cabal update" and
+# 'cabal install pandoc'; errors such as 'Could not find module `Text.Pandoc' result
+# from not doing this. If you don't wish to do this, purge the docs directory of
+# the two .hs files
+#
+# The first `doiLinks.hs` adds a
 # hyperlink to DOI citation entries.  The second `pygments.hs` from [Matti
 # Pastell](https://bitbucket.org/mpastell/pandoc-filters/) uses [Pygments] to
 # highlight code blocks.  This way we can have highlighted Julia code on the
