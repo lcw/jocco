@@ -49,7 +49,7 @@ const header = "<!DOCTYPE html>
   <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">
   <link rel=\"stylesheet\" media=\"all\" href=\"jocco.css\" />
   <script type=\"text/javascript\"
-    src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">
+    src=\"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\">
   </script>
 </head>
 <body>
